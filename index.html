@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head >
+    <meta charset="UTF-8" >
+    <title >Title</title >
+    <link rel="stylesheet" href="style.css">
+</head >
+<body >
+<script src="send.js"></script>
+<script src="levels.js"></script>
+<script>
+  let counter = new Counter();
+  const UUID = '2350a3fd-2f9b-4ab6-961e-1e9a6dc94e74';
+
+  const isTouchDevice = () => {
+    let prefixes = ' -webkit- -moz- -o- -ms- '.split(' ');
+    let mq = function(query) {
+      return window.matchMedia(query).matches;
+    }
+
+    if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
+      return true;
+    }
+    let query = ['(', prefixes.join('touch-enabled),('), 'heartz', ')'].join('');
+    return mq(query);
+  }
+  let isTouch = isTouchDevice();
+
+  counter.init(UUID, String(Math.random()).substr(2, 12), 'send test');
+  counter.setAdditionalParams({
+    env: 'production',
+    platform: isTouch ? 'touch' : 'desktop',
+    os: window.navigator.oscpu,
+    browser: window.navigator.appName,
+  });
+
+  counter.send('connect', performance.timing.connectEnd - performance.timing.connectStart);
+  counter.send('ttfb', performance.timing.responseEnd - performance.timing.requestStart);
+  counter.send('pixelRatio', window.devicePixelRatio);
+
+  let timeStart = Date.now();
+  let lastmousex=-1;
+  let lastmousey=-1;
+  let lastmousetime = -1;
+  let mousetravel = 0;
+  let isLandscape = null;
+  let usedCallbak = false
+
+
+  const mishureLandscape = (oldIsLandscape) => {
+    const newIsLandscape = window.innerWidth > window.innerHeight ? true : false;
+    if(oldIsLandscape !== newIsLandscape) {
+      counter.send('isLandScape', isLandscape ? 1 : 0);
+      isLandscape = newIsLandscape;
+    }
+  }
+
+  mishureLandscape(null);
+
+  const mishureDiagonal = () => {
+    const width2 = Math.pow(Math.abs(window.innerWidth), 2);
+    const height2 = Math.pow(Math.abs(window.innerHeight), 2);
+    const diagonal = Math.sqrt(width2 + height2);
+    counter.send('diagonal', diagonal);
+  }
+
+  const mishureSpeed = (callBack) => {
+      document.querySelector('#sign').onmouseover = (e) => {
+        let delta;
+        let now = new Date();
+        if (lastmousetime !== -1) {
+          delta = now - lastmousetime;
+        }
+        lastmousetime = now;
+        let mousex = e.pageX;
+        let mousey = e.pageY;
+        if (lastmousex > -1) {
+          const deltaX = Math.pow(Math.abs(mousex-lastmousex), 2);
+          const deltaY = Math.pow(Math.abs(mousey-lastmousey), 2);
+
+          mousetravel = Math.sqrt(deltaX + deltaY);
+          const speed = mousetravel / delta;
+          counter.send('speed', speed);
+          counter.send('path', mousetravel);
+        }
+
+        lastmousex = mousex;
+        lastmousey = mousey;
+        if (!usedCallbak) {
+          usedCallbak = true;
+          callBack();
+        }
+      };
+  }
+
+
+  setTimeout(function() {
+    document.querySelector('#root').classList.add('black');
+    window.addEventListener('resize', () => {
+      mishureDiagonal();
+      mishureLandscape(isLandscape);
+    });
+    // mishureSpeed();
+    counter.send('load', Date.now() - timeStart);
+  }, Math.random() * 1000 + 500);
+
+
+</script>
+<div id="root">
+    <div class="diagonal"></div>
+    <div class="center" id="result">
+        Добро пожаловать.
+        <br>Это простой iq-test.
+        <br>Просто делайте то, что вас просят и ни то не пострадает.
+        <br>
+        <button onClick="rerender(isTouch ? 5 : 0)">
+            Го
+        </button>
+    </div>
+</div>
+</body >
+</html >
