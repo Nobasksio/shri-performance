@@ -26,13 +26,16 @@ https://nobasksio.github.io/shri-performance/
 Интерфейс для сравнения метрик к сожалению реализовать уже не успевал по времени но функции из задания реализовал. Результаты расчетов выводятся в консоли. 
 
 // показать значение метрики за несколько дней
+
 function showMetricByPeriod(data, name, dateStart, dateFinish) 
 
 // показать сессию пользователя
+
 function showSession(data, sessionId)
 
 
 // сравнить метрику в разных срезах
+
 function compareMetric(data, atr, name)
 
 
